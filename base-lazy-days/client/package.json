@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^2.8.2",
+    "@tanstack/react-query": "^5.66.7",
+    "@tanstack/react-query-devtools": "^5.66.7",
     "axios": "^1.6.2",
     "dayjs": "^1.11.10",
     "fast-json-patch": "^3.1.1",
@@ -23,6 +25,7 @@
     "react-router-dom": "^6.18.0"
   },
   "devDependencies": {
+    "@tanstack/eslint-plugin-query": "^5.66.1",
     "@testing-library/jest-dom": "^6.2.0",
     "@testing-library/react": "^14.1.2",
     "@types/node": "^20.9.0",
@@ -42,9 +45,10 @@
     "install": "^0.13.0",
     "jsdom": "^23.0.1",
     "msw": "^2.0.11",
-    "npm": "^10.2.3",
+    "npm": "^10.9.2",
     "typescript": "^5.2.2",
     "vite": "^4.4.5",
     "vitest": "^1.1.1"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

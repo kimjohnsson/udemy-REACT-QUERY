@@ -1,19 +1,22 @@
-import dayjs from "dayjs";
-import { useState } from "react";
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import dayjs from 'dayjs';
+import { useCallback, useEffect, useState } from 'react';
 
-import { AppointmentDateMap } from "../types";
-import { getAvailableAppointments } from "../utils";
-import { getMonthYearDetails, getNewMonthYear } from "./monthYear";
+import { AppointmentDateMap } from '../types';
+import { getAvailableAppointments } from '../utils';
+import { getMonthYearDetails, getNewMonthYear } from './monthYear';
 
-import { useLoginData } from "@/auth/AuthContext";
-import { axiosInstance } from "@/axiosInstance";
-import { queryKeys } from "@/react-query/constants";
+import { useLoginData } from '@/auth/AuthContext';
+import { axiosInstance } from '@/axiosInstance';
+import { queryKeys } from '@/react-query/constants';
+
+const commonOptions = {
+  staleTime: 0,
+  gcTime: 1800000
+};
 
 // for useQuery call
-async function getAppointments(
-  year: string,
-  month: string
-): Promise<AppointmentDateMap> {
+async function getAppointments(year: string, month: string): Promise<AppointmentDateMap> {
   const { data } = await axiosInstance.get(`/appointments/${year}/${month}`);
   return data;
 }
@@ -50,18 +53,47 @@ export function useAppointments() {
   //   appointments that the logged-in user has reserved (in white)
   const { userId } = useLoginData();
 
+  const selectFn = useCallback(
+    (data: AppointmentDateMap) => {
+      if (showAll) {
+        return data;
+      }
+
+      return getAvailableAppointments(data, userId);
+    },
+    [userId, showAll]
+  );
+
   /** ****************** END 2: filter appointments  ******************** */
   /** ****************** START 3: useQuery  ***************************** */
   // useQuery call for appointments for the current monthYear
 
-  // TODO: update with useQuery!
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const nextMonthYear = getNewMonthYear(monthYear, 1);
+
+    queryClient.prefetchQuery({
+      queryKey: [queryKeys.appointments, nextMonthYear.year, nextMonthYear.month],
+      queryFn: () => getAppointments(nextMonthYear.year, nextMonthYear.month),
+      ...commonOptions
+    });
+  }, [queryClient, monthYear]);
+
   // Notes:
   //    1. appointments is an AppointmentDateMap (object with days of month
   //       as properties, and arrays of appointments for that day as values)
   //
   //    2. The getAppointments query function needs monthYear.year and
   //       monthYear.month
-  const appointments: AppointmentDateMap = {};
+  const fallback: AppointmentDateMap = {};
+
+  const { data: appointments = fallback } = useQuery({
+    queryKey: [queryKeys.appointments, monthYear.year, monthYear.month],
+    queryFn: () => getAppointments(monthYear.year, monthYear.month),
+    select: (data) => selectFn(data),
+    refetchInterval: 60000,
+    ...commonOptions
+  });
 
   /** ****************** END 3: useQuery  ******************************* */
 
